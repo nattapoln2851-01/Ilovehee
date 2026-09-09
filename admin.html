@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - ระบบยืม–คืนหนังสือ</title>
+<style>
+:root {
+  --green: #0f766e;
+  --dark: #115e59;
+  --cream: #f8fafc;
+  --paper: #ffffff;
+  --line: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --red: #ef4444;
+  --yellow: #f59e0b;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Kanit', "Segoe UI", "Noto Sans Thai", sans-serif;
+  background: var(--cream);
+  color: var(--text);
+}
+
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+
+.layout { min-height: 100vh; display: flex; }
+
+.sidebar {
+  width: 260px;
+  background: var(--dark);
+  color: white;
+  padding: 24px 18px;
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 10;
+  box-shadow: 4px 0 15px rgba(0,0,0,0.05);
+}
+
+.brand { font-size: 20px; font-weight: 800; padding: 10px 12px 6px; color: #ccfbf1; display: flex; align-items: center; gap: 10px; }
+.admin-label { font-size: 11px; color: #99f6e4; padding: 0 12px 20px; letter-spacing: 1px; font-weight: 600; }
+
+.nav {
+  border: 0; background: transparent; color: #e6fffa;
+  width: 100%; padding: 12px 16px; border-radius: 12px;
+  text-align: left; margin: 4px 0; font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex; align-items: center; justify-content: flex-start; gap: 10px;
+}
+
+.nav:hover, .nav.active { background: rgba(255, 255, 255, 0.15); color: #ffffff; font-weight: 600; }
+.logout { margin-top: 30px; background: rgba(239, 68, 68, 0.2); color: #fecaca; }
+.logout:hover { background: rgba(239, 68, 68, 0.4); }
+
+.main { margin-left: 260px; width: calc(100% - 260px); }
+
+.topbar {
+  height: 70px; background: #ffffff; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 35px; position: sticky; top: 0; z-index: 5;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+.top-title { font-size: 20px; font-weight: 700; color: var(--text); }
+.profile { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: #ccfbf1; display: grid; place-items: center; font-size: 18px; }
+
+.content { padding: 32px; max-width: 1600px; margin: auto; }
+h1 { margin: 0 0 24px; font-size: 26px; font-weight: 700; }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px; }
+
+.card {
+  background: var(--paper); border: 1px solid var(--line);
+  border-radius: 18px; box-shadow: var(--shadow); padding: 22px;
+  transition: transform 0.2s;
+}
+
+.card:hover { transform: translateY(-2px); }
+
+.stat-label { color: var(--muted); font-size: 14px; font-weight: 500; }
+.stat-value { font-size: 34px; font-weight: 800; margin-top: 8px; color: var(--green); }
+
+.grid2 { display: grid; grid-template-columns: 1.2fr .8fr; gap: 22px; }
+.panel-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: white; box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; text-align: left; table-layout: auto; }
+th, td { padding: 14px 18px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
+th { background: #f8fafc; font-weight: 600; color: #475569; font-size: 14px; border-bottom: 2px solid var(--line); }
+
+.badge { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.ok { background: #d1fae5; color: #047857; }
+.bad { background: #fee2e2; color: #b91c1c; }
+.warn { background: #fef3c7; color: #b45309; }
+.info { background: #e0f2fe; color: #0369a1; }
+
+.toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+input, select { border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 16px; background: white; outline: none; transition: border-color 0.2s; }
+input:focus, select:focus { border-color: var(--green); }
+.search { min-width: 260px; flex: 1; }
+
+.btn { border: 0; border-radius: 10px; padding: 8px 16px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.primary { background: var(--green); color: white; box-shadow: 0 4px 10px rgba(15,118,110,0.2); }
+.primary:hover { background: #115e59; }
+.outline { background: white; color: var(--text); border: 1.5px solid var(--line); }
+.outline:hover { background: #f8fafc; }
+.danger { background: var(--red); color: white; }
+.danger:hover { background: #dc2626; }
+
+.actions { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-start; }
+.empty { text-align: center; padding: 35px; color: var(--muted); }
+
+.chart { display: flex; align-items: flex-end; gap: 18px; height: 180px; padding: 10px 8px; }
+.bar { flex: 1; min-width: 30px; background: var(--green); border-radius: 8px 8px 0 0; position: relative; }
+.bar span { position: absolute; bottom: -26px; left: 50%; transform: translateX(-50%); font-size: 12px; white-space: nowrap; color: var(--muted); font-weight: 600; }
+
+.mobile { display: none; }
+
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: grid; place-items: center; z-index: 30; padding: 20px; }
+.modal { width: min(500px, 100%); background: white; border-radius: 20px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.close { border: 0; background: none; font-size: 24px; color: var(--muted); cursor: pointer; }
+
+.field { margin-bottom: 16px; }
+.field label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+.field input, .field select { width: 100%; }
+
+.pass-box { display: flex; align-items: center; gap: 8px; }
+.pass-text { font-family: monospace; letter-spacing: 1px; }
+.btn-toggle-pass { border: 0; background: none; cursor: pointer; padding: 2px 6px; font-size: 16px; border-radius: 5px; display: inline-flex; align-items: center; }
+.btn-toggle-pass:hover { background: #eee; }
+
+/* Custom Info Card Modal */
+.info-card { background: #f8fafc; border-radius: 14px; padding: 16px; border: 1px solid var(--line); margin-bottom: 15px; }
+.info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.info-row:last-child { border-bottom: none; }
+.info-label { color: var(--muted); font-weight: 500; }
+.info-val { font-weight: 600; color: var(--text); }
+
+@media(max-width:950px){
+  .sidebar { left: -260px; transition: .2s; }
+  .sidebar.open { left: 0; }
+  .main { margin-left: 0; width: 100%; }
+  .mobile { display: block; border: 0; background: none; font-size: 24px; cursor: pointer; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .grid2 { grid-template-columns: 1fr; }
+}
+
+@media(max-width:560px){
+  .content { padding: 18px; }
+  .stats { grid-template-columns: 1fr; }
+  .topbar { padding: 0 16px; }
+}
+
+.ui-icon{width:20px;height:20px;display:inline-block;vertical-align:middle;object-fit:contain;flex:0 0 auto}
+.icon-lg{width:46px;height:46px}.icon-sm{width:17px;height:17px}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjY2ZiZjEiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik00IDQuNUEyLjUgMi41IDAgMCAxIDYuNSAySDIwdjE3SDYuNUEyLjUgMi41IDAgMCAwIDQgMjEuNXoiLz48cGF0aCBkPSJNNCA0LjV2MTciLz48cGF0aCBkPSJNOCA2aDgiLz48L3N2Zz4=" alt="" aria-hidden="true"><span>ห้องสมุดโรงเรียน</span></div>
+  <div class="admin-label" id="adminRole">ADMINISTRATOR</div>
+  <button class="nav active" data-page="dashboard"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNlNmZmZmEiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Im0zIDEwIDktNyA5IDciLz48cGF0aCBkPSJNNSA5djExaDE0VjkiLz48cGF0aCBkPSJNOSAyMHYtNmg2djYiLz48L3N2Zz4=" alt="" aria-hidden="true"><span>Dashboard</span></button>
+  <button class="nav" data-page="books"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNlNmZmZmEiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik00IDQuNUEyLjUgMi41IDAgMCAxIDYuNSAySDIwdjE3SDYuNUEyLjUgMi41IDAgMCAwIDQgMjEuNXoiLz48cGF0aCBkPSJNNCA0LjV2MTciLz48cGF0aCBkPSJNOCA2aDgiLz48L3N2Zz4=" alt="" aria-hidden="true"><span>จัดการหนังสือ</span></button>
+  <button class="nav" data-page="students"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNlNmZmZmEiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjkiIGN5PSI4IiByPSIzIi8+PHBhdGggZD0iTTMgMjBhNiA2IDAgMCAxIDEyIDAiLz48cGF0aCBkPSJNMTYgNC41YTMgMyAwIDAgMSAwIDciLz48cGF0aCBkPSJNMTcgMTRhNSA1IDAgMCAxIDQgNiIvPjwvc3ZnPg==" alt="" aria-hidden="true"><span>รายชื่อนักเรียน</span></button>
+  <button class="nav" data-page="teachers"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNlNmZmZmEiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjkiIGN5PSI4IiByPSIzIi8+PHBhdGggZD0iTTMgMjBhNiA2IDAgMCAxIDEyIDAiLz48cGF0aCBkPSJNMTYgNWg1djVoLTV6Ii8+PHBhdGggZD0iTTE4LjUgMTB2NCIvPjwvc3ZnPg==" alt="" aria-hidden="true"><span>รายชื่อครู</span></button>
+  <button class="nav" data-page="borrow"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNlNmZmZmEiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik01IDRoMTJhMiAyIDAgMCAxIDIgMnYxNEg3YTIgMiAwIDAgMS0yLTJ6Ii8+PHBhdGggZD0iTTUgNHYxNGEyIDIgMCAwIDAgMiAyIi8+PHBhdGggZD0iTTkgOGg2TTkgMTJoNiIvPjwvc3ZnPg==" alt="" aria-hidden="true"><span>รายการยืม–คืน</span></button>
+  <button class="nav" data-page="overdue"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZWNhY2EiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTMiIHI9IjkiLz48cGF0aCBkPSJNMTIgOXY0bDIuNSAyLjUiLz48cGF0aCBkPSJNNSAzTDIgNm0yMCAwTDE5IDMiLz48L3N2Zz4=" alt="" aria-hidden="true"><span>หนังสือเกินกำหนด</span></button>
+  <button class="nav" data-page="reports"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNlNmZmZmEiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik00IDE5VjVNNCAxOWgxNiIvPjxwYXRoIGQ9Im03IDE2IDQtNSAzIDMgNS03Ii8+PC9zdmc+" alt="" aria-hidden="true"><span>รายงาน</span></button>
+  <button class="nav" data-page="users"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNlNmZmZmEiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iOCIgcj0iMyIvPjxwYXRoIGQ9Ik01IDIwYTcgNyAwIDAgMSAxNCAwIi8+PC9zdmc+" alt="" aria-hidden="true"><span>ผู้ใช้งานระบบ</span></button>
+  <button class="nav logout" id="logout"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZWNhY2EiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xMCAxN2w1LTUtNS01Ii8+PHBhdGggZD0iTTE1IDEySDMiLz48cGF0aCBkPSJNMjEgMTlWNWEyIDIgMCAwIDAtMi0yaC02Ii8+PC9zdmc+" alt="" aria-hidden="true"><span>ออกจากระบบ</span></button>
+</aside>
+
+<main class="main">
+<header class="topbar">
+  <button class="mobile" id="mobileMenu"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzQxNTUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik00IDZoMTZNNCAxMmgxNk00IDE4aDE2Ii8+PC9zdmc+" alt="เมนู" aria-hidden="true"></button>
+  <div class="top-title" id="topTitle">Dashboard ผู้ดูแลระบบ</div>
+  <div class="profile"><div class="avatar"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjc2NmUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iOCIgcj0iMyIvPjxwYXRoIGQ9Ik01IDIwYTcgNyAwIDAgMSAxNCAwIi8+PC9zdmc+" alt="ผู้ดูแลระบบ" aria-hidden="true"></div><span id="adminName">ผู้ดูแลระบบ</span></div>
+</header>
+<div class="content" id="content"></div>
+</main>
+</div>
+
+<script>
+const DB_KEY = "school_library_db_v2";
+const session = JSON.parse(sessionStorage.getItem('library_session') || "null");
+
+if(!session || session.role !== 'admin'){
+  alert('กรุณาเข้าสู่ระบบในฐานะผู้ดูแลระบบ');
+  location.href = 'login.html';
+}
+
+let state = JSON.parse(localStorage.getItem(DB_KEY)) || {books:[], students:[], records:[], users:[]};
+
+document.getElementById("adminName").textContent = session.name || "ผู้ดูแลระบบ";
+document.getElementById("adminRole").textContent = session.userRole ? session.userRole.toUpperCase() : "ADMINISTRATOR";
+
+function save(){localStorage.setItem(DB_KEY,JSON.stringify(state))}
+function today(){return new Date().toISOString().slice(0,10)}
+function getBook(id){return state.books.find(x=>x.id===id)}
+function getStudent(id){return state.students.find(x=>x.id===id)}
+
+function recStatus(r){
+  if(r.status === "pending") return "รออนุมัติ";
+  if(r.status === "rejected") return "ปฏิเสธ";
+  if(r.returned) return "คืนแล้ว";
+  return today() > r.due ? "เกินกำหนด" : "กำลังยืม";
+}
+
+function badge(s){
+  let c = s === "คืนแล้ว" ? "ok" : s === "เกินกำหนด" ? "bad" : s === "รออนุมัติ" ? "warn" : "info";
+  return `<span class="badge ${c}">${s}</span>`;
+}
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toast(t){const e=document.createElement("div");e.textContent=t;e.style.cssText="position:fixed;right:20px;bottom:20px;background:#1b3e2b;color:white;padding:13px 20px;border-radius:12px;z-index:50;box-shadow:0 10px 20px rgba(0,0,0,0.2)";document.body.appendChild(e);setTimeout(()=>e.remove(),2200)}
+const titles={dashboard:"Dashboard ผู้ดูแลระบบ",books:"จัดการหนังสือ",students:"รายชื่อนักเรียน",teachers:"รายชื่อครู",borrow:"รายการยืม–คืน",overdue:"หนังสือเกินกำหนด",reports:"รายงาน",users:"ผู้ใช้งานระบบ"};
+
+function render(page="dashboard"){
+ document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+ document.getElementById("topTitle").textContent=titles[page]||"ระบบผู้ดูแล";
+ const c=document.getElementById("content");
+ if(page==="dashboard")c.innerHTML=dashboard();
+ if(page==="books")c.innerHTML=booksPage();
+ if(page==="students")c.innerHTML=studentsPage();
+ if(page==="teachers")c.innerHTML=teachersPage();
+ if(page==="borrow")c.innerHTML=borrowPage(false);
+ if(page==="overdue")c.innerHTML=borrowPage(true);
+ if(page==="reports")c.innerHTML=reportsPage();
+ if(page==="users")c.innerHTML=usersPage();
+ bind(page);
+}
+
+function dashboard(){
+ const pending=state.records.filter(r=>r.status==="pending").length;
+ const active=state.records.filter(r=>!r.returned && r.status==="approved").length;
+ const overdue=state.records.filter(r=>recStatus(r)==="เกินกำหนด").length;
+ const available=state.books.reduce((a,b)=>a+b.available,0);
+ const recent=state.records.slice().reverse().slice(0,5);
+ return `<h1>ภาพรวมระบบ</h1>
+ <div class="stats">
+  <div class="card"><div class="stat-label">คำขอรออนุมัติ</div><div class="stat-value" style="color:var(--yellow)">${pending}</div></div>
+  <div class="card"><div class="stat-label">กำลังถูกยืม</div><div class="stat-value">${active}</div></div>
+  <div class="card"><div class="stat-label">เกินกำหนดคืน</div><div class="stat-value" style="color:var(--red)">${overdue}</div></div>
+  <div class="card"><div class="stat-label">หนังสือพร้อมยืม</div><div class="stat-value">${available}</div></div>
+ </div>
+ <div class="grid2">
+  <div class="card"><div class="panel-title"><h3>รายการล่าสุด</h3></div>
+   <div class="table-wrap"><table><thead><tr><th>ผู้ยืม</th><th>หนังสือ</th><th>กำหนดคืน</th><th>สถานะ</th></tr></thead><tbody>
+   ${recent.map(r=>`<tr><td>${esc(getStudent(r.student)?.name)}</td><td>${esc(getBook(r.book)?.title)}</td><td>${r.due||'—'}</td><td>${badge(recStatus(r))}</td></tr>`).join("")}
+   </tbody></table></div>
+  </div>
+  <div class="card"><div class="panel-title"><h3>สรุปหนังสือ</h3></div>
+   ${state.books.slice(0,5).map(b=>`<p style="margin:14px 0">${esc(b.title)} <strong style="float:right">${b.available}/${b.qty}</strong></p>`).join("")}
+  </div>
+ </div>`;
+}
+
+function booksPage(){
+ return `<h1>จัดการหนังสือ</h1>
+ <div class="toolbar"><input class="search" id="bookSearch" placeholder="ค้นหาชื่อหรือรหัสหนังสือ"><button class="btn primary" id="addBook">+ เพิ่มหนังสือ</button></div>
+ <div class="table-wrap"><table><thead><tr><th>ชื่อหนังสือ</th><th>หมวดหมู่</th><th>ระดับชั้น</th><th>จำนวน</th><th>ว่าง</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody id="bookBody">${bookRows(state.books)}</tbody></table></div>`;
+}
+function bookRows(arr){return arr.length?arr.map(b=>`<tr><td>${esc(b.title)}</td><td>${esc(b.category)}</td><td>${esc(b.level)}</td><td>${b.qty}</td><td>${b.available}</td><td>${b.available>0?'<span class="badge ok">พร้อมยืม</span>':'<span class="badge bad">ไม่มีเล่มว่าง</span>'}</td><td class="actions"><button class="btn outline edit" data-id="${b.id}">แก้ไข</button><button class="btn danger del" data-id="${b.id}">ลบ</button></td></tr>`).join(""):`<tr><td colspan="7"><div class="empty">ไม่พบข้อมูล</div></td></tr>`}
+
+function studentsPage(){
+ const list = state.students.filter(s => (s.userRole || 'student') === 'student');
+ return `<h1>รายชื่อนักเรียน</h1><div class="toolbar"><input class="search" id="studentSearch" placeholder="ค้นหารหัสหรือชื่อนักเรียน"><button class="btn primary" id="addStudent">+ เพิ่มนักเรียน</button></div>
+ <div class="table-wrap"><table><thead><tr><th>รหัสนักเรียน</th><th>ชื่อ–นามสกุล</th><th>ชั้น</th><th>เบอร์โทรศัพท์</th><th>รหัสผ่าน</th><th>กำลังยืม</th><th>จัดการ</th></tr></thead><tbody id="studentBody">${studentRows(list)}</tbody></table></div>`;
+}
+function studentRows(arr){return arr.length?arr.map(s=>`<tr>
+ <td>${s.code}</td>
+ <td>${esc(s.name)}</td>
+ <td>${esc(s.className)}</td>
+ <td>${esc(s.phone || '-')}</td>
+ <td>
+   <div class="pass-box">
+     <span class="pass-text" id="pass-std-${s.id}">••••••••</span>
+     <button class="btn-toggle-pass" onclick="togglePass('pass-std-${s.id}', '${esc(s.password || "1234")}')" title="แสดง/ซ่อนรหัสผ่าน"><img class="ui-icon icon-sm" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjc2NmUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yLjUgMTJzMy41LTYgOS41LTYgOS41IDYgOS41IDYtMy41IDYtOS41IDYtOS41LTYtOS41LTZ6Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMi41Ii8+PC9zdmc+" alt="แสดงรหัสผ่าน" aria-hidden="true"></button>
+   </div>
+ </td>
+ <td>${state.records.filter(r=>r.student===s.id&&!r.returned&&r.status==="approved").length}</td>
+ <td class="actions">
+   <button class="btn outline viewStudent" data-id="${s.id}">ดูข้อมูล</button>
+   <button class="btn danger delStudent" data-id="${s.id}">ลบ</button>
+ </td>
+</tr>`).join(""):`<tr><td colspan="7"><div class="empty">ไม่พบข้อมูล</div></td></tr>`}
+
+function teachersPage(){
+ const list = state.students.filter(s => s.userRole === 'teacher');
+ return `<h1>รายชื่อครู</h1><div class="toolbar"><input class="search" id="teacherSearch" placeholder="ค้นหารหัสประจำตัวหรือชื่อครู"><button class="btn primary" id="addTeacher">+ เพิ่มครู</button></div>
+ <div class="table-wrap"><table><thead><tr><th>รหัสประจำตัวครู</th><th>ชื่อ–นามสกุล</th><th>เบอร์โทรศัพท์</th><th>รหัสผ่าน</th><th>กำลังยืม</th><th>จัดการ</th></tr></thead><tbody id="teacherBody">${teacherRows(list)}</tbody></table></div>`;
+}
+function teacherRows(arr){return arr.length?arr.map(t=>`<tr>
+ <td>${t.code}</td>
+ <td>${esc(t.name)}</td>
+ <td>${esc(t.phone || '-')}</td>
+ <td>
+   <div class="pass-box">
+     <span class="pass-text" id="pass-tch-${t.id}">••••••••</span>
+     <button class="btn-toggle-pass" onclick="togglePass('pass-tch-${t.id}', '${esc(t.password || "1234")}')" title="แสดง/ซ่อนรหัสผ่าน"><img class="ui-icon icon-sm" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjc2NmUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yLjUgMTJzMy41LTYgOS41LTYgOS41IDYgOS41IDYtMy41IDYtOS41IDYtOS41LTYtOS41LTZ6Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMi41Ii8+PC9zdmc+" alt="แสดงรหัสผ่าน" aria-hidden="true"></button>
+   </div>
+ </td>
+ <td>${state.records.filter(r=>r.student===t.id&&!r.returned&&r.status==="approved").length}</td>
+ <td class="actions">
+   <button class="btn outline viewStudent" data-id="${t.id}">ดูข้อมูล</button>
+   <button class="btn danger delStudent" data-id="${t.id}">ลบ</button>
+ </td>
+</tr>`).join(""):`<tr><td colspan="6"><div class="empty">ไม่พบข้อมูล</div></td></tr>`}
+
+function borrowPage(overdueOnly){
+ let rows=state.records.filter(r=>!overdueOnly||recStatus(r)==="เกินกำหนด");
+ return `<h1>${overdueOnly?"หนังสือเกินกำหนด":"รายการยืม–คืน"}</h1>
+ <div class="toolbar"><input class="search" id="recordSearch" placeholder="ค้นหาผู้ยืมหรือหนังสือ"></div>
+ <div class="table-wrap"><table><thead><tr><th>ผู้ยืม</th><th>หนังสือ</th><th>วันที่ขอยืม</th><th>กำหนดคืน</th><th>วันที่คืน</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody id="recordBody">${recordRows(rows)}</tbody></table></div>`;
+}
+
+function recordRows(arr){
+  return arr.length?arr.map(r=>{
+    let actionButtons = "—";
+    if (r.status === "pending") {
+      actionButtons = `
+        <button class="btn primary approve" data-id="${r.id}">อนุมัติ</button>
+        <button class="btn danger reject" data-id="${r.id}">ปฏิเสธ</button>
+      `;
+    } else if (r.status === "approved" && !r.returned) {
+      actionButtons = `<button class="btn outline return" data-id="${r.id}">บันทึกคืน</button>`;
+    }
+
+    return `<tr>
+      <td>${esc(getStudent(r.student)?.name || 'ผู้ใช้งาน')}</td>
+      <td>${esc(getBook(r.book)?.title || 'หนังสือ')}</td>
+      <td>${r.borrow}</td>
+      <td>${r.due || "—"}</td>
+      <td>${r.returned || "—"}</td>
+      <td>${badge(recStatus(r))}</td>
+      <td class="actions">${actionButtons}</td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="7"><div class="empty">ไม่มีรายการ</div></td></tr>`;
+}
+
+function reportsPage(){
+ const returned=state.records.filter(r=>r.returned).length;
+ const active=state.records.filter(r=>!r.returned && r.status==="approved").length;
+ const overdue=state.records.filter(r=>recStatus(r)==="เกินกำหนด").length;
+ const max=Math.max(active,returned,overdue,1);
+ return `<h1>รายงาน</h1><div class="grid2">
+ <div class="card"><div class="panel-title"><h3>สรุปการยืม–คืน</h3></div>
+  <div class="chart"><div class="bar" style="height:${active/max*140+20}px"><span>กำลังยืม ${active}</span></div><div class="bar" style="height:${returned/max*140+20}px"><span>คืนแล้ว ${returned}</span></div><div class="bar" style="height:${overdue/max*140+20}px"><span>เกินกำหนด ${overdue}</span></div></div>
+ </div>
+ <div class="card"><h3>หนังสือที่ถูกยืมมาก</h3>${state.books.map(b=>{let n=state.records.filter(r=>r.book===b.id && r.status==="approved").length;return {title:b.title, count:n}}).sort((a,b)=>b.count-a.count).map(b=>`<p style="margin:12px 0">${esc(b.title)} <strong style="float:right">${b.count} ครั้ง</strong></p>`).join("")}</div>
+ </div>`;
+}
+
+function usersPage(){
+ return `<h1>ผู้ใช้งานระบบ (ผู้ดูแลระบบ)</h1><div class="toolbar"><button class="btn primary" id="addUser">+ เพิ่มผู้ดูแลระบบ</button></div>
+ <div class="table-wrap"><table><thead><tr><th>ชื่อ</th><th>Username</th><th>รหัสผ่าน</th><th>สิทธิ์</th><th>จัดการ</th></tr></thead><tbody>${state.users.map(u=>`<tr>
+ <td>${esc(u.name)}</td>
+ <td>${esc(u.username)}</td>
+ <td>
+   <div class="pass-box">
+     <span class="pass-text" id="pass-usr-${u.id}">••••••••</span>
+     <button class="btn-toggle-pass" onclick="togglePass('pass-usr-${u.id}', '${esc(u.password || "1234")}')" title="แสดง/ซ่อนรหัสผ่าน"><img class="ui-icon icon-sm" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjc2NmUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yLjUgMTJzMy41LTYgOS41LTYgOS41IDYgOS41IDYtMy41IDYtOS41IDYtOS41LTYtOS41LTZ6Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMi41Ii8+PC9zdmc+" alt="แสดงรหัสผ่าน" aria-hidden="true"></button>
+   </div>
+ </td>
+ <td><span class="badge info">${u.role}</span></td>
+ <td><button class="btn danger userDel" data-id="${u.id}">ลบ</button></td>
+</tr>`).join("")}</tbody></table></div>`;
+}
+
+function togglePass(elementId, realPassword) {
+  const el = document.getElementById(elementId);
+  const btn = el.nextElementSibling;
+  if (el.textContent === "••••••••") {
+    el.textContent = realPassword;
+    btn.innerHTML = '<img class="ui-icon icon-sm" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjc2NmUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Im0zIDMgMTggMTgiLz48cGF0aCBkPSJNMTAuNiA1LjFBMTAuOCAxMC44IDAgMCAxIDEyIDVjNiAwIDkuNSA3IDkuNSA3YTE3 IDE3IDAgMCAxLTMgMy45TTYuMiA2LjJDMy43IDggMi41IDEyIDIuNSAxMmExNyAxNyAwIDAgMCA1IDUgMTAuOCAxMC44IDAgMCAwIDQuNSAxYzEuMiAwIDIuMy0uMiAzLjMtLjYiLz48cGF0aCBkPSJNOS45IDkuOWEzIDMgMCAwIDAgNC4yIDQuMiIvPjwvc3ZnPg==" alt="ซ่อนรหัสผ่าน" aria-hidden="true">';
+  } else {
+    el.textContent = "••••••••";
+    btn.innerHTML = '<img class="ui-icon icon-sm" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjc2NmUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yLjUgMTJzMy41LTYgOS41LTYgOS41IDYgOS41IDYtMy41IDYtOS41IDYtOS41LTYtOS41LTZ6Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMi41Ii8+PC9zdmc+" alt="แสดงรหัสผ่าน" aria-hidden="true">';
+  }
+}
+
+function bind(page){
+ const bs=document.getElementById("bookSearch");if(bs)bs.oninput=()=>document.getElementById("bookBody").innerHTML=bookRows(state.books.filter(b=>(b.id+b.title+b.category).toLowerCase().includes(bs.value.toLowerCase())));
+ const ss=document.getElementById("studentSearch");if(ss)ss.oninput=()=>document.getElementById("studentBody").innerHTML=studentRows(state.students.filter(s=>(s.userRole||'student')==='student' && (s.code+s.name+s.className).toLowerCase().includes(ss.value.toLowerCase())));
+ const ts=document.getElementById("teacherSearch");if(ts)ts.oninput=()=>document.getElementById("teacherBody").innerHTML=teacherRows(state.students.filter(s=>s.userRole==='teacher' && (s.code+s.name).toLowerCase().includes(ts.value.toLowerCase())));
+ const rs=document.getElementById("recordSearch");if(rs)rs.oninput=()=>document.getElementById("recordBody").innerHTML=recordRows(state.records.filter(r=>((getStudent(r.student)?.name||"")+(getBook(r.book)?.title||"")).toLowerCase().includes(rs.value.toLowerCase())&&(page!=="overdue"||recStatus(r)==="เกินกำหนด")));
+ 
+ document.querySelectorAll(".approve").forEach(b=>b.onclick=()=>approveRecord(b.dataset.id));
+ document.querySelectorAll(".reject").forEach(b=>b.onclick=()=>rejectRecord(b.dataset.id));
+ document.querySelectorAll(".return").forEach(b=>b.onclick=()=>returnRecord(b.dataset.id));
+ document.querySelectorAll(".del").forEach(b=>b.onclick=()=>deleteBook(b.dataset.id));
+ document.querySelectorAll(".edit").forEach(b=>b.onclick=()=>bookModal(getBook(b.dataset.id)));
+ document.querySelectorAll(".viewStudent").forEach(b=>b.onclick=()=>alertStudent(b.dataset.id));
+ document.querySelectorAll(".delStudent").forEach(b=>b.onclick=()=>deleteStudent(b.dataset.id));
+ document.querySelectorAll(".userDel").forEach(b=>b.onclick=()=>{if(confirm("ต้องการลบผู้ใช้งานนี้หรือไม่?")){state.users=state.users.filter(u=>u.id!==b.dataset.id);save();render("users");}});
+ const add=document.getElementById("addBook");if(add)add.onclick=()=>bookModal();
+ const addS=document.getElementById("addStudent");if(addS)addS.onclick=()=>studentModal();
+ const addT=document.getElementById("addTeacher");if(addT)addT.onclick=()=>teacherModal();
+ const addU=document.getElementById("addUser");if(addU)addU.onclick=()=>userModal();
+}
+
+function approveRecord(id){
+ const r = state.records.find(x => x.id === id);
+ if (!r) return toast("ไม่พบรายการคำขอยืมนี้");
+ const b = getBook(r.book);
+ if (!b) return toast("ไม่พบข้อมูลหนังสือในระบบ");
+ if (b.available <= 0) return toast("ไม่มีหนังสือเล่มว่างเหลืออยู่");
+
+ const borrower = getStudent(r.student);
+ const isTeacher = borrower?.userRole === 'teacher';
+ const borrowerName = borrower?.name || "ผู้ใช้งาน";
+
+ const days = isTeacher ? 30 : 7; 
+
+ const dueDate = new Date();
+ dueDate.setDate(dueDate.getDate() + days);
+
+ r.status = "approved";
+ r.due = dueDate.toISOString().slice(0, 10);
+ b.available -= 1;
+
+ save();
+ render("borrow");
+ toast(`อนุมัติการยืมให้ ${borrowerName} เรียบร้อย (กำหนดคืนภายใน ${days} วัน)`);
+}
+
+function rejectRecord(id){
+ const r = state.records.find(x => x.id === id);
+ if (!r) return;
+ if (confirm("ปฏิเสธคำขอยืมนี้ใช่หรือไม่?")) {
+   r.status = "rejected";
+   save();
+   render("borrow");
+   toast("ปฏิเสธคำขอยืมแล้ว");
+ }
+}
+
+function returnRecord(id){
+ const r=state.records.find(x=>x.id===id);if(!r||r.returned)return;
+ r.returned=today();const b=getBook(r.book);if(b)b.available=Math.min(b.qty,b.available+1);save();render("borrow");toast("บันทึกการคืนสำเร็จ");
+}
+
+function deleteBook(id){
+ if(state.records.some(r=>r.book===id&&!r.returned&&r.status==="approved")){toast("ไม่สามารถลบหนังสือที่กำลังถูกยืมได้");return}
+ if(confirm("ต้องการลบหนังสือเล่มนี้หรือไม่?")){state.books=state.books.filter(b=>b.id!==id);save();render("books");toast("ลบหนังสือสำเร็จ")}
+}
+
+function deleteStudent(id){
+ if(state.records.some(r=>r.student===id&&!r.returned&&r.status==="approved")){
+  toast("ไม่สามารถลบผู้ใช้งานที่กำลังค้างยืมหนังสือได้");
+  return;
+ }
+ const s = getStudent(id);
+ if(confirm(`คุณต้องการลบข้อมูล "${s ? s.name : ''}" ใช่หรือไม่?`)){
+  state.students = state.students.filter(x => x.id !== id);
+  save();
+  render(s?.userRole === 'teacher' ? 'teachers' : 'students');
+  toast("ลบข้อมูลเรียบร้อยแล้ว");
+ }
+}
+
+function bookModal(book){
+ const bg=document.createElement("div");bg.className="modal-bg";bg.innerHTML=`<div class="modal"><div class="modal-head"><h2>${book?"แก้ไขหนังสือ":"เพิ่มหนังสือ"}</h2><button class="close">×</button></div>
+ <form id="bookForm"><div class="field"><label>ชื่อหนังสือ</label><input name="title" required value="${esc(book?.title||"")}"></div>
+ <div class="field"><label>หมวดหมู่</label><input name="category" required value="${esc(book?.category||"")}"></div>
+ <div class="field"><label>ระดับชั้น</label><input name="level" required value="${esc(book?.level||"")}"></div>
+ <div class="field"><label>จำนวน</label><input type="number" min="1" name="qty" required value="${book?.qty||1}"></div>
+ <button class="btn primary" style="width:100%">บันทึก</button></form></div>`;document.body.appendChild(bg);
+ bg.querySelector(".close").onclick=()=>bg.remove();
+ bg.querySelector("form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),q=Number(f.get("qty"));if(book){const used=book.qty-book.available;Object.assign(book,{title:f.get("title"),category:f.get("category"),level:f.get("level"),qty:Math.max(q,used),available:Math.max(q-used,0)})}else state.books.push({id:"B"+Date.now().toString().slice(-5),title:f.get("title"),category:f.get("category"),level:f.get("level"),qty:q,available:q});save();bg.remove();render("books");toast("บันทึกข้อมูลสำเร็จ")}
+}
+
+function studentModal(){
+ const bg=document.createElement("div");bg.className="modal-bg";bg.innerHTML=`<div class="modal"><div class="modal-head"><h2>เพิ่มนักเรียน</h2><button class="close">×</button></div><form id="sf">
+ <div class="field"><label>รหัสนักเรียน</label><input name="code" required></div><div class="field"><label>ชื่อ–นามสกุล</label><input name="name" required></div><div class="field"><label>ชั้น</label><input name="className" required placeholder="เช่น ม.5/1"></div>
+ <div class="field"><label>เบอร์โทรศัพท์</label><input name="phone"></div>
+ <div class="field"><label>รหัสผ่าน</label><input name="password" required value="1234"></div>
+ <button class="btn primary" style="width:100%">บันทึก</button></form></div>`;document.body.appendChild(bg);bg.querySelector(".close").onclick=()=>bg.remove();bg.querySelector("#sf").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);state.students.push({id:"S"+Date.now().toString().slice(-5),code:f.get("code"),name:f.get("name"),className:f.get("className"),phone:f.get("phone"),userRole:"student",password:f.get("password")||"1234"});save();bg.remove();render("students");toast("เพิ่มนักเรียนสำเร็จ")}
+}
+
+function teacherModal(){
+ const bg=document.createElement("div");bg.className="modal-bg";bg.innerHTML=`<div class="modal"><div class="modal-head"><h2>เพิ่มครู</h2><button class="close">×</button></div><form id="tf">
+ <div class="field"><label>รหัสประจำตัวครู</label><input name="code" required></div><div class="field"><label>ชื่อ–นามสกุล</label><input name="name" required></div>
+ <div class="field"><label>เบอร์โทรศัพท์</label><input name="phone"></div>
+ <div class="field"><label>รหัสผ่าน</label><input name="password" required value="1234"></div>
+ <button class="btn primary" style="width:100%">บันทึก</button></form></div>`;document.body.appendChild(bg);bg.querySelector(".close").onclick=()=>bg.remove();bg.querySelector("#tf").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);state.students.push({id:"T"+Date.now().toString().slice(-5),code:f.get("code"),name:f.get("name"),className:"ครู/อาจารย์",phone:f.get("phone"),userRole:"teacher",password:f.get("password")||"1234"});save();bg.remove();render("teachers");toast("เพิ่มครูสำเร็จ")}
+}
+
+function userModal(){
+ const bg=document.createElement("div");bg.className="modal-bg";bg.innerHTML=`<div class="modal"><div class="modal-head"><h2>เพิ่มผู้ดูแลระบบ (Admin)</h2><button class="close">×</button></div><form id="uf">
+ <div class="field"><label>ชื่อ</label><input name="name" required></div><div class="field"><label>Username</label><input name="username" required></div>
+ <div class="field"><label>รหัสผ่าน</label><input name="password" required value="1234"></div>
+ <button class="btn primary" style="width:100%">บันทึก</button></form></div>`;document.body.appendChild(bg);bg.querySelector(".close").onclick=()=>bg.remove();bg.querySelector("#uf").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);state.users.push({id:"U"+Date.now().toString().slice(-5),name:f.get("name"),username:f.get("username"),role:"Admin",password:f.get("password")||"1234"});save();bg.remove();render("users");toast("เพิ่มผู้ดูแลระบบสำเร็จ")}
+}
+
+// ปรับแต่ง alert ข้อมูลนักเรียน/ครู แบบ Modal กรอบสวยงาม
+function alertStudent(id){
+ const s = getStudent(id);
+ const rows = state.records.filter(r => r.student === id);
+ const bg = document.createElement("div");
+ bg.className = "modal-bg";
+ bg.innerHTML = `
+ <div class="modal">
+   <div class="modal-head">
+     <h2>รายละเอียดผู้ใช้งาน</h2>
+     <button class="close">×</button>
+   </div>
+   <div class="info-card">
+     <div class="info-row"><span class="info-label">ชื่อ–นามสกุล:</span><span class="info-val">${esc(s?.name || 'ไม่พบชื่อ')}</span></div>
+     <div class="info-row"><span class="info-label">รหัสประจำตัว:</span><span class="info-val">${esc(s?.code || '-')}</span></div>
+     <div class="info-row"><span class="info-label">ประเภทผู้ใช้:</span><span class="info-val">${s?.userRole === 'teacher' ? 'ครู / อาจารย์' : 'นักเรียน'}</span></div>
+     <div class="info-row"><span class="info-label">เบอร์โทรศัพท์:</span><span class="info-val">${esc(s?.phone || '-')}</span></div>
+     <div class="info-row"><span class="info-label">ประวัติการยืมทั้งหมด:</span><span class="info-val">${rows.length} รายการ</span></div>
+   </div>
+   <button class="btn primary close-btn" style="width:100%">ตกลง</button>
+ </div>`;
+ document.body.appendChild(bg);
+ bg.querySelector(".close").onclick = () => bg.remove();
+ bg.querySelector(".close-btn").onclick = () => bg.remove();
+}
+
+document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{
+ if(b.id==="logout"){
+  if(confirm("ออกจากระบบผู้ดูแลหรือไม่?")){
+   sessionStorage.removeItem("library_session");
+   location.href="login.html";
+  }
+  return;
+ }
+ render(b.dataset.page);
+ document.getElementById("sidebar").classList.remove("open")
+});
+document.getElementById("mobileMenu").onclick=()=>document.getElementById("sidebar").classList.toggle("open");
+render("dashboard");
+</script>
+</body>
+</html>

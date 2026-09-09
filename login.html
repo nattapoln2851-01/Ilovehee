@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เข้าสู่ระบบ | ห้องสมุดดิจิทัล</title>
+<style>
+:root {
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --primary-glow: rgba(16, 185, 129, 0.35);
+  --bg-gradient: linear-gradient(-45deg, #0f172a, #1e293b, #064e3b, #022c22);
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+}
+
+* { box-sizing: border-box; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+
+body {
+  margin: 0; min-height: 100vh;
+  font-family: 'Kanit', sans-serif;
+  background: var(--bg-gradient);
+  background-size: 400% 400%;
+  animation: gradientBG 12s ease infinite;
+  display: grid; place-items: center; padding: 20px;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.card {
+  width: min(420px, 100%);
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  border-radius: 24px; padding: 35px 30px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 0 0 20px rgba(16, 185, 129, 0.2);
+  animation: floatIn 0.8s ease-out;
+}
+
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.logo {
+  font-size: 55px; text-align: center; cursor: pointer;
+  animation: pulse 2.5s infinite ease-in-out;
+  display: inline-block; width: 100%; user-select: none;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.12) rotate(5deg); }
+}
+
+h1 { margin: 10px 0 0; color: #065f46; text-align: center; font-size: 26px; }
+p.sub { text-align: center; color: var(--text-muted); margin: 4px 0 24px; font-size: 14px; }
+
+.field { margin-bottom: 18px; }
+label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; color: #334155; }
+
+input, select {
+  width: 100%; padding: 12px 16px;
+  border: 2px solid #e2e8f0; border-radius: 12px;
+  outline: none; font-size: 15px; background: #f8fafc;
+}
+
+input:focus, select:focus {
+  border-color: var(--primary); background: #fff;
+  box-shadow: 0 0 0 4px var(--primary-glow); transform: translateY(-2px);
+}
+
+button {
+  width: 100%; border: 0; border-radius: 12px; padding: 14px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff; font-weight: 700; font-size: 16px; cursor: pointer;
+  box-shadow: 0 8px 20px var(--primary-glow); position: relative; overflow: hidden;
+}
+
+button:active { transform: scale(0.97); }
+button:hover { box-shadow: 0 12px 25px rgba(16, 185, 129, 0.5); transform: translateY(-2px); }
+
+.err {
+  color: #e11d48; background: #ffe4e6; border: 1px solid #fecdd3;
+  padding: 10px; border-radius: 10px; font-size: 14px; text-align: center;
+  display: none; animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.footer-link { text-align: center; margin-top: 22px; font-size: 14px; color: var(--text-muted); }
+.footer-link a { color: var(--primary-hover); font-weight: 700; text-decoration: none; }
+.footer-link a:hover { text-decoration: underline; }
+
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px); display: none; place-items: center; z-index: 100;
+}
+.modal {
+  width: min(380px, 100%); background: #fff; border-radius: 20px; padding: 30px;
+  animation: floatIn 0.3s ease-out; position: relative;
+}
+.modal h2 { margin: 0 0 16px; color: #065f46; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <!-- คลิก 3 ครั้งที่โลโก้เพื่อเปิด Modal ผู้ดูแล -->
+  <div class="logo" id="adminTrigger" title="คลิก 3 ครั้งเพื่อเข้าสิทธิ์ Admin">📖</div>
+  <h1>ห้องสมุดดิจิทัล</h1>
+  <p class="sub">ระบบยืม–คืนหนังสืออัจฉริยะ</p>
+  <div id="err" class="err"></div>
+
+  <div class="field">
+    <label>ประเภทผู้ใช้งาน</label>
+    <select id="role">
+      <option value="student">นักเรียน</option>
+      <option value="teacher">ครู / อาจารย์</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label id="userLabel">รหัสประจำตัวนักเรียน</label>
+    <input id="user" inputmode="numeric" placeholder="กรอกรหัสประจำตัว" autocomplete="username">
+  </div>
+
+  <div class="field">
+    <label>รหัสผ่าน</label>
+    <input id="pass" type="password" placeholder="กรอกรหัสผ่าน" autocomplete="current-password">
+  </div>
+
+  <button id="login">เข้าสู่ระบบ ✨</button>
+
+  <div class="footer-link">
+    ยังไม่มีบัญชีผู้ใช้? <a href="register.html">ลงทะเบียนใหม่</a>
+  </div>
+</div>
+
+<div class="modal-bg" id="adminModal">
+  <div class="modal">
+    <!-- ลบปุ่มกากบาทปิด Modal ออกแล้ว -->
+    <h2>🔐 เข้าสู่ระบบผู้ดูแล</h2>
+    <div id="adminErr" class="err"></div>
+    <div class="field">
+      <label>Username Admin</label>
+      <input id="adminUser" placeholder="Username Admin">
+    </div>
+    <div class="field">
+      <label>รหัสผ่าน</label>
+      <input id="adminPass" type="password" placeholder="รหัสผ่าน">
+    </div>
+    <button id="adminLoginBtn" style="background:#065f46">เข้าสู่ระบบ Admin</button>
+  </div>
+</div>
+
+<script>
+const DB_KEY = "school_library_db_v2";
+const initialDB = {
+ books: [
+  {id:"B001", title:"คู่มือเตรียมสอบ PAT 1", category:"วิชาการ", level:"ม.ปลาย", qty:3, available:3},
+  {id:"B002", title:"ประวัติศาสตร์โลกฉบับย่อ", category:"ประวัติศาสตร์", level:"ทั่วไป", qty:2, available:2}
+ ],
+ students: [], records: [],
+ users: [{id:"U001", name:"ผู้ดูแลระบบ", username:"admin_user", password:"admin888", role:"Admin"}]
+};
+
+if (!localStorage.getItem(DB_KEY)) localStorage.setItem(DB_KEY, JSON.stringify(initialDB));
+
+const role = document.getElementById('role'), user = document.getElementById('user'), pass = document.getElementById('pass'), label = document.getElementById('userLabel'), err = document.getElementById('err');
+
+user.oninput = () => { user.value = user.value.replace(/[^0-9]/g, ''); };
+role.onchange = () => {
+  label.textContent = role.value === 'student' ? 'รหัสประจำตัวนักเรียน' : 'รหัสประจำตัวครู';
+  user.value = ''; pass.value = ''; err.style.display = 'none';
+};
+
+function login(){
+  const db = JSON.parse(localStorage.getItem(DB_KEY));
+  const r = role.value, u = user.value.trim(), p = pass.value;
+  
+  const std = db.students.find(s => s.code === u && (s.password || "1234") === p && (s.userRole || 'student') === r);
+  if(std) {
+    sessionStorage.setItem('library_session', JSON.stringify({ role: 'user', userRole: std.userRole || 'student', id: std.id, code: std.code, name: std.name }));
+    location.href = 'index.html';
+    return;
+  }
+  err.textContent = 'ข้อมูลเข้าสู่ระบบไม่ถูกต้อง';
+  err.style.display = 'block';
+}
+
+document.getElementById('login').onclick = login;
+pass.onkeydown = e => { if(e.key === 'Enter') login(); };
+
+// 1. ระบบกดคลิกโลโก้ 3 ครั้งเพื่อเปิด Modal Admin
+const adminModal = document.getElementById('adminModal');
+const adminTrigger = document.getElementById('adminTrigger');
+let clickCount = 0;
+let clickTimer = null;
+
+adminTrigger.addEventListener('click', () => {
+  clickCount++;
+  if (clickCount === 3) {
+    adminModal.style.display = 'grid';
+    document.getElementById('adminUser').focus();
+    clickCount = 0;
+    clearTimeout(clickTimer);
+    return;
+  }
+  clearTimeout(clickTimer);
+  clickTimer = setTimeout(() => {
+    clickCount = 0;
+  }, 800);
+});
+
+// 2 & 3. ปิด Modal เมื่อคลิกพื้นที่ภายนอกกล่องสี่เหลี่ยม
+adminModal.addEventListener('click', (e) => {
+  if (e.target === adminModal) {
+    adminModal.style.display = 'none';
+  }
+});
+
+function adminLogin(){
+  const db = JSON.parse(localStorage.getItem(DB_KEY));
+  const u = document.getElementById('adminUser').value.trim(), p = document.getElementById('adminPass').value;
+  const admin = db.users.find(x => x.username === u && x.password === p);
+  if(admin) {
+    sessionStorage.setItem('library_session', JSON.stringify({ role: 'admin', userRole: admin.role, id: admin.id, name: admin.name }));
+    location.href = 'admin.html';
+  } else {
+    document.getElementById('adminErr').textContent = 'Username/Password ผิดพลาด';
+    document.getElementById('adminErr').style.display = 'block';
+  }
+}
+document.getElementById('adminLoginBtn').onclick = adminLogin;
+</script>
+</body>
+</html>

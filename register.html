@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ลงทะเบียน | ห้องสมุดดิจิทัล</title>
+<style>
+:root {
+  --primary: #10b981;
+  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #065f46 100%);
+}
+
+* { box-sizing: border-box; transition: all 0.25s ease; }
+
+body {
+  margin: 0; min-height: 100vh; font-family: 'Kanit', sans-serif;
+  background: var(--bg-gradient); display: grid; place-items: center; padding: 20px;
+}
+
+.card {
+  width: min(460px, 100%); background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px); border-radius: 24px; padding: 35px 30px;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.25); animation: zoomIn 0.5s ease-out;
+}
+
+@keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+h1 { margin: 0; color: #065f46; text-align: center; font-size: 26px; }
+p.sub { text-align: center; color: #64748b; margin: 6px 0 20px; font-size: 14px; }
+
+.field { margin-bottom: 15px; }
+label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; color: #334155; }
+
+input, select {
+  width: 100%; padding: 11px 15px; border: 2px solid #e2e8f0;
+  border-radius: 12px; outline: none; font-size: 14px; background: #f8fafc;
+}
+
+input:focus, select:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); }
+
+button {
+  width: 100%; border: 0; border-radius: 12px; padding: 14px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff; font-weight: 700; font-size: 16px; cursor: pointer;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); margin-top: 10px;
+}
+
+button:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(16, 185, 129, 0.4); }
+
+.msg { padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 14px; text-align: center; display: none; }
+.msg.err { color: #e11d48; background: #ffe4e6; }
+.msg.ok { color: #059669; background: #d1fae5; }
+
+.pass-wrapper { position: relative; }
+.check-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%) scale(0); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #10b981; font-weight: bold; }
+.check-icon.active { transform: translateY(-50%) scale(1.2); }
+
+.footer-link { text-align: center; margin-top: 18px; font-size: 14px; color: #64748b; }
+.footer-link a { color: var(--primary); font-weight: 700; text-decoration: none; }
+
+/* Unified visual refresh: self-contained icons, consistent spacing and surfaces */
+:root{--primary:#0f766e;--primary-2:#14b8a6;--primary-dark:#115e59;--bg:#f1f5f9;--surface:#fff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--shadow-sm:0 2px 10px rgba(15,23,42,.05);--shadow:0 14px 35px rgba(15,23,42,.08)}
+.ui-icon{width:20px;height:20px;display:inline-block;vertical-align:middle;object-fit:contain;flex:0 0 auto}
+.icon-lg{width:46px;height:46px}.icon-sm{width:17px;height:17px}
+button,.btn,.nav{display:inline-flex;align-items:center;justify-content:center;gap:9px}
+.card,.book-card,.table-wrap{box-shadow:var(--shadow-sm)}
+</style>
+</head>
+<body>
+<div class="card">
+  <div style="text-align:center;margin-bottom:8px;"><img class="ui-icon icon-lg" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjc2NmUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik00IDIwaDE2Ii8+PHBhdGggZD0iTTYgMTdsOS05IDMgMy05IDlINnoiLz48cGF0aCBkPSJtMTQgNiAyLTIgMyAzLTIgMiIvPjwvc3ZnPg==" alt="สมัครสมาชิก" aria-hidden="true"></div>
+  <h1>สมัครสมาชิก</h1>
+  <p class="sub">เข้าร่วมใช้งานระบบห้องสมุดโรงเรียน</p>
+  <div id="msg" class="msg"></div>
+
+  <form id="regForm">
+    <div class="field">
+      <label>ประเภทผู้ใช้งาน</label>
+      <select id="role" required>
+        <option value="student">นักเรียน</option>
+        <option value="teacher">ครู / อาจารย์</option>
+      </select>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <div class="field" style="flex:1"><label>ชื่อ</label><input type="text" id="firstname" required></div>
+      <div class="field" style="flex:1"><label>นามสกุล</label><input type="text" id="lastname" required></div>
+    </div>
+    <div class="field"><label>เบอร์โทรศัพท์</label><input type="tel" id="phone" class="num" maxlength="10" required></div>
+
+    <div id="studentFields">
+      <div class="field"><label>รหัสนักเรียน</label><input type="text" id="code" class="num"></div>
+      <div class="field"><label>ชั้นเรียน</label><input type="text" id="className" placeholder="เช่น ม.5/1"></div>
+    </div>
+
+    <div id="teacherFields" style="display:none;">
+      <div class="field"><label>รหัสประจำตัวครู</label><input type="text" id="teacherCode" class="num"></div>
+    </div>
+
+    <div class="field"><label>รหัสผ่าน</label><input type="password" id="password" required></div>
+    <div class="field">
+      <label>ยืนยันรหัสผ่าน</label>
+      <div class="pass-wrapper">
+        <input type="password" id="confirmPassword" required>
+        <span id="passCheck" class="check-icon"><img class="ui-icon icon-sm" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjc2NmUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Im01IDEyIDQgNEwxOSA2Ii8+PC9zdmc+" alt="รหัสผ่านตรงกัน" aria-hidden="true"></span>
+      </div>
+    </div>
+    <button type="submit">ยืนยันสมัครสมาชิก </button>
+  </form>
+  <div class="footer-link">มีบัญชีผู้ใช้อยู่แล้ว? <a href="login.html">เข้าสู่ระบบ</a></div>
+</div>
+
+<script>
+const DB_KEY = "school_library_db_v2";
+function getDB() { return JSON.parse(localStorage.getItem(DB_KEY)) || {books:[],students:[],records:[],users:[]}; }
+
+document.querySelectorAll('.num').forEach(input => {
+  input.oninput = () => { input.value = input.value.replace(/[^0-9]/g, ''); };
+});
+
+const roleSelect = document.getElementById('role');
+roleSelect.onchange = () => {
+  const isStd = roleSelect.value === 'student';
+  document.getElementById('studentFields').style.display = isStd ? 'block' : 'none';
+  document.getElementById('teacherFields').style.display = isStd ? 'none' : 'block';
+};
+
+const passInput = document.getElementById('password'), confirmPass = document.getElementById('confirmPassword'), checkIcon = document.getElementById('passCheck');
+function checkPass() {
+  if (passInput.value && confirmPass.value && passInput.value === confirmPass.value) checkIcon.classList.add('active');
+  else checkIcon.classList.remove('active');
+}
+passInput.oninput = checkPass; confirmPass.oninput = checkPass;
+
+document.getElementById('regForm').onsubmit = (e) => {
+  e.preventDefault();
+  const db = getDB();
+  const role = roleSelect.value;
+  const p1 = passInput.value, p2 = confirmPass.value;
+  if (p1 !== p2) { showMsg('รหัสผ่านไม่ตรงกัน'); return; }
+
+  let userCode = role === 'student' ? document.getElementById('code').value.trim() : document.getElementById('teacherCode').value.trim();
+  if (db.students.some(s => s.code === userCode)) { showMsg('รหัสนี้มีอยู่ในระบบแล้ว'); return; }
+
+  db.students.push({
+    id: (role === 'student' ? "S" : "T") + Date.now().toString().slice(-5),
+    code: userCode,
+    name: document.getElementById('firstname').value.trim() + " " + document.getElementById('lastname').value.trim(),
+    phone: document.getElementById('phone').value.trim(),
+    className: role === 'student' ? document.getElementById('className').value.trim() : "ครู/อาจารย์",
+    userRole: role, password: p1
+  });
+
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+  showMsg('ลงทะเบียนสำเร็จ! กำลังนำไปหน้าเข้าสู่ระบบ...', 'ok');
+  setTimeout(() => location.href = 'login.html', 1200);
+};
+
+function showMsg(t, type='err') {
+  const m = document.getElementById('msg');
+  m.textContent = t; m.className = `msg ${type}`; m.style.display = 'block';
+}
+</script>
+</body>
+</html>
