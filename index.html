@@ -1,233 +1,25 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ค้นหาและยืมหนังสือ | ห้องสมุดดิจิทัล</title>
-<style>
-:root {
-  --primary: #10b981;
-  --primary-dark: #059669;
-  --bg-color: #f1f5f9;
-  --card-bg: #ffffff;
-  --text-main: #0f172a;
-}
-
-* { box-sizing: border-box; transition: all 0.25s ease; }
-
-body { margin: 0; font-family: 'Kanit', sans-serif; background: var(--bg-color); color: var(--text-main); }
-
-.header {
-  background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
-  color: white; padding: 18px 35px; display: flex; justify-content: space-between; align-items: center;
-  box-shadow: 0 4px 20px rgba(4, 120, 87, 0.3); position: sticky; top: 0; z-index: 20;
-}
-
-.header h2 { margin: 0; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-
-.header button {
-  background: rgba(255, 255, 255, 0.15); color: white; border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 8px 18px; border-radius: 12px; font-weight: 600; cursor: pointer; backdrop-filter: blur(5px);
-}
-.header button:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.05); }
-
-.container { max-width: 1200px; margin: 30px auto; padding: 0 20px; animation: fadeIn 0.6s ease-out; }
-
-@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-.card {
-  background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;
-}
-
-.card h3 { margin-top: 0; color: #047857; font-size: 20px; display: flex; align-items: center; gap: 8px; }
-
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 20px; }
-
-.book-card {
-  background: #ffffff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 20px;
-  display: flex; flex-direction: column; justify-content: space-between;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.02); position: relative; overflow: hidden;
-}
-
-.book-card::before {
-  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px;
-  background: linear-gradient(90deg, #10b981, #3b82f6); opacity: 0; transition: opacity 0.3s;
-}
-
-.book-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
-.book-card:hover::before { opacity: 1; }
-
-.btn {
-  background: linear-gradient(135deg, #10b981, #059669); color: white; border: 0;
-  padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%;
-  margin-top: 15px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-}
-.btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
-.btn:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; transform: none; }
-
-.badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-.badge-pending { background: #fef3c7; color: #d97706; }
-.badge-ok { background: #d1fae5; color: #059669; }
-.badge-overdue { background: #ffe4e6; color: #e11d48; }
-
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; text-align: left; }
-th { background: #f8fafc; font-weight: 600; color: #475569; }
-
-input[type="text"] {
-  width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 14px; outline: none; font-size: 15px;
-}
-input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15); }
-
-/* Custom Modal UI */
-.custom-modal-bg {
-  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(6px); display: none; place-items: center; z-index: 100; padding: 20px;
-}
-.custom-modal {
-  width: min(420px, 100%); background: #ffffff; border-radius: 24px; padding: 30px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-@keyframes popIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
-.modal-icon {
-  width: 60px; height: 60px; background: #e6fffa; color: #0f766e; border-radius: 50%;
-  display: grid; place-items: center; margin: 0 auto 16px; font-size: 28px;
-}
-.modal-btns { display: flex; gap: 12px; margin-top: 24px; }
-.modal-btns button { flex: 1; padding: 12px; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; }
-.btn-cancel { background: #f1f5f9; color: #64748b; }
-.btn-confirm { background: linear-gradient(135deg, #10b981, #059669); color: white; }
-
-.ui-icon{width:20px;height:20px;display:inline-block;vertical-align:middle;object-fit:contain;flex:0 0 auto}
-.icon-lg{width:46px;height:46px}.icon-sm{width:17px;height:17px}
-button,.btn,.nav{display:inline-flex;align-items:center;justify-content:center;gap:9px}
-</style>
+  <meta charset="UTF-8">
+  <title>Firebase + Vercel Demo</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; }
+    input, button { padding: 10px; margin-top: 5px; width: 100%; box-sizing: border-box; }
+    ul { list-style: none; padding: 0; }
+    li { background: #f0f0f0; margin-top: 5px; padding: 10px; border-radius: 4px; }
+  </style>
 </head>
 <body>
-<header class="header">
-  <h2><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjc2NmUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik00IDQuNUEyLjUgMi41IDAgMCAxIDYuNSAySDIwdjE3SDYuNUEyLjUgMi41IDAgMCAwIDQgMjEuNXoiLz48cGF0aCBkPSJNNCA0LjV2MTciLz48cGF0aCBkPSJNOCA2aDgiLz48L3N2Zz4=" alt="" aria-hidden="true"><span>ห้องสมุดโรงเรียน</span></h2>
-  <div>
-    <span id="stdInfo" style="margin-right:15px; font-weight: 500;"></span>
-    <button onclick="logout()"><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZWNhY2EiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xMCAxN2w1LTUtNS01Ii8+PHBhdGggZD0iTTE1IDEySDMiLz48cGF0aCBkPSJNMjEgMTlWNWEyIDIgMCAwIDAtMi0yaC02Ii8+PC9zdmc+" alt="ออกจากระบบ" aria-hidden="true"><span>ออกจากระบบ</span></button>
-  </div>
-</header>
-
-<div class="container">
-  <div class="card">
-    <h3><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjc2NmUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik01IDRoMTJhMiAyIDAgMCAxIDIgMnYxNEg3YTIgMiAwIDAgMS0yLTJ6Ii8+PHBhdGggZD0iTTUgNHYxNGEyIDIgMCAwIDAgMiAyIi8+PHBhdGggZD0iTTkgOGg2TTkgMTJoNiIvPjwvc3ZnPg==" alt="" aria-hidden="true"><span>ประวัติและสถานะการยืมหนังสือ</span></h3>
-    <div style="overflow-x: auto;">
-      <table>
-        <thead><tr><th>หนังสือ</th><th>วันที่ขอยืม</th><th>กำหนดคืน</th><th>สถานะ</th></tr></thead>
-        <tbody id="myBorrowList"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3><img class="ui-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjc2NmUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEwLjgiIGN5PSIxMC44IiByPSI2LjgiLz48cGF0aCBkPSJtMTYgMTYgNSA1Ii8+PC9zdmc+" alt="" aria-hidden="true"><span>ค้นหาและทำรายการยืมหนังสือ</span></h3>
-    <input type="text" id="searchBook" placeholder="พิมพ์ชื่อหนังสือหรือหมวดหมู่ที่ต้องการค้นหา..." style="margin-bottom:20px">
-    <div class="grid" id="bookCatalog"></div>
-  </div>
-</div>
-
-<!-- Modal ยืนยันคำขอ -->
-<div class="custom-modal-bg" id="confirmModal">
-  <div class="custom-modal">
-    <div class="modal-icon">📚</div>
-    <h3 style="margin:0 0 8px; color:#0f172a;">ยืนยันส่งคำขอยืมหนังสือ</h3>
-    <p id="modalBookTitle" style="color:#64748b; margin:0; font-size:15px;"></p>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
-      <button class="btn-confirm" id="btnConfirmBorrow">ตกลง</button>
-    </div>
-  </div>
-</div>
-
-<script>
-const DB_KEY = "school_library_db_v2";
-const session = JSON.parse(sessionStorage.getItem('library_session') || "null");
-
-if (!session || (session.role !== 'user' && session.role !== 'student')) {
-  alert('กรุณาเข้าสู่ระบบก่อนใช้งาน');
-  location.href = 'login.html';
-}
-
-const userRoleTitle = session.userRole === 'teacher' ? 'ครู' : 'นักเรียน';
-document.getElementById('stdInfo').innerHTML = '<img class="ui-icon icon-sm" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjc2NmUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iOCIgcj0iMyIvPjxwYXRoIGQ9Ik01IDIwYTcgNyAwIDAgMSAxNCAwIi8+PC9zdmc+" alt="ผู้ใช้" aria-hidden="true">' + `<span>${session.name} (${userRoleTitle})</span>`;
-
-function getDB() { return JSON.parse(localStorage.getItem(DB_KEY)); }
-function saveDB(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
-
-function getStatusBadge(r) {
-  if (r.status === 'pending') return `<span class="badge badge-pending">รออนุมัติ</span>`;
-  if (r.status === 'rejected') return `<span class="badge badge-overdue">ปฏิเสธ</span>`;
-  if (r.returned) return `<span class="badge badge-ok">คืนแล้ว</span>`;
-  return new Date().toISOString().slice(0,10) > r.due ? `<span class="badge badge-overdue">เกินกำหนด</span>` : `<span class="badge badge-ok">กำลังยืม</span>`;
-}
-
-function render() {
-  const db = getDB(); if (!db) return;
-  const myRecords = db.records.filter(r => r.student === session.id && !r.returned && r.status !== 'rejected');
-  const tbody = document.getElementById('myBorrowList');
+  <h2>บันทึกข้อมูลเข้า Firebase</h2>
   
-  tbody.innerHTML = myRecords.length === 0 
-    ? '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:20px;">ไม่มีรายการค้างยืม</td></tr>'
-    : myRecords.map(r => {
-        const book = db.books.find(b => b.id === r.book);
-        return `<tr><td>${book ? book.title : 'ไม่พบข้อมูล'}</td><td>${r.borrow}</td><td>${r.due || '-'}</td><td>${getStatusBadge(r)}</td></tr>`;
-      }).join('');
+  <input type="text" id="userInput" placeholder="พิมพ์ข้อความที่ต้องการบันทึก...">
+  <button id="saveBtn">บันทึกข้อมูล</button>
 
-  const search = document.getElementById('searchBook').value.toLowerCase();
-  const catalog = document.getElementById('bookCatalog');
-  const filtered = db.books.filter(b => b.available > 0 && (b.title.toLowerCase().includes(search) || b.category.toLowerCase().includes(search)));
+  <h3>รายการข้อมูลในระบบ:</h3>
+  <ul id="dataList"></ul>
 
-  catalog.innerHTML = filtered.length === 0 
-    ? '<p style="color:#94a3b8;grid-column:1/-1;text-align:center;">ไม่พบหนังสือที่ค้นหา</p>'
-    : filtered.map(b => {
-        const hasPending = db.records.some(r => r.student === session.id && r.book === b.id && r.status === 'pending');
-        return `
-          <div class="book-card">
-            <div>
-              <h4 style="margin:0 0 8px 0;font-size:16px;color:#0f172a;">${b.title}</h4>
-              <p style="margin:4px 0;font-size:13px;color:#64748b;">หมวดหมู่: ${b.category} | ชั้น: ${b.level}</p>
-              <p style="margin:8px 0;font-size:14px;">คงเหลือ: <strong style="color:#10b981;">${b.available}</strong> / ${b.qty} เล่ม</p>
-            </div>
-            <button class="btn" ${hasPending ? 'disabled' : ''} onclick="openBorrowModal('${b.id}')">
-              ${hasPending ? 'รอแอดมินอนุมัติ' : 'ขอยืมหนังสือ'}
-            </button>
-          </div>`;
-      }).join('');
-}
-
-let pendingBookId = null;
-function openBorrowModal(bookId) {
-  const db = getDB(), book = db.books.find(b => b.id === bookId);
-  pendingBookId = bookId;
-  document.getElementById('modalBookTitle').textContent = `คุณต้องการขอยืมหนังสือ "${book.title}" ใช่หรือไม่?`;
-  document.getElementById('confirmModal').style.display = 'grid';
-}
-
-function closeModal() {
-  document.getElementById('confirmModal').style.display = 'none';
-  pendingBookId = null;
-}
-
-document.getElementById('btnConfirmBorrow').onclick = () => {
-  if (!pendingBookId) return;
-  const db = getDB();
-  db.records.push({
-    id: "R" + Date.now().toString().slice(-5), student: session.id, book: pendingBookId,
-    borrow: new Date().toISOString().slice(0,10), due: null, returned: null, status: "pending"
-  });
-  saveDB(db);
-  closeModal();
-  render();
-};
-
-document.getElementById('searchBook').oninput = render;
-function logout() { sessionStorage.removeItem('library_session'); location.href = 'login.html'; }
-render();
-</script>
+  <!-- ดึงไฟล์ app.js มาทำงาน -->
+  <script type="module" src="app.js"></script>
 </body>
 </html>
