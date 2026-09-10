@@ -245,6 +245,8 @@ function dashboard(){
  const overdue=state.records.filter(r=>recStatus(r)==="เกินกำหนด").length;
  const available=state.books.reduce((a,b)=>a+b.available,0);
  const recent=state.records.slice().reverse().slice(0,5);
+ const bookSummaries = state.books.slice(0,5).map(b=>`<p style="margin:14px 0">${esc(b.title)} <strong style="float:right">${b.available}/${b.qty}</strong></p>`).join("");
+ 
  return `<h1>ภาพรวมระบบ</h1>
  <div class="stats">
   <div class="card"><div class="stat-label">คำขอรออนุมัติ</div><div class="stat-value" style="color:var(--yellow)">${pending}</div></div>
@@ -255,11 +257,11 @@ function dashboard(){
  <div class="grid2">
   <div class="card"><div class="panel-title"><h3>รายการล่าสุด</h3></div>
    <div class="table-wrap"><table><thead><tr><th>ผู้ยืม</th><th>หนังสือ</th><th>กำหนดคืน</th><th>สถานะ</th></tr></thead><tbody>
-   ${recent.map(r=>`<tr><td>${esc(getStudent(r.student)?.name)}</td><td>${esc(getBook(r.book)?.title)}</td><td>${r.due||'—'}</td><td>${badge(recStatus(r))}</td></tr>`).join("")}
+   ${recent.length ? recent.map(r=>`<tr><td>${esc(getStudent(r.student)?.name)}</td><td>${esc(getBook(r.book)?.title)}</td><td>${r.due||'—'}</td><td>${badge(recStatus(r))}</td></tr>`).join("") : '<tr><td colspan="4"><div class="empty">ไม่มีรายการ</div></td></tr>'}
    </tbody></table></div>
   </div>
   <div class="card"><div class="panel-title"><h3>สรุปหนังสือ</h3></div>
-   ${state.books.slice(0,5).map(b=>`<p style="margin:14px 0">${esc(b.title)} <strong style="float:right">${b.available}/${b.qty}</strong></p>`).join("")}
+   ${bookSummaries ? bookSummaries : '<div class="empty">ไม่มีข้อมูลหนังสือ</div>'}
   </div>
  </div>`;
 }
@@ -269,7 +271,7 @@ function booksPage(){
  <div class="toolbar"><input class="search" id="bookSearch" placeholder="ค้นหาชื่อหรือรหัสหนังสือ"><button class="btn primary" id="addBook">+ เพิ่มหนังสือ</button></div>
  <div class="table-wrap"><table><thead><tr><th>ชื่อหนังสือ</th><th>หมวดหมู่</th><th>ระดับชั้น</th><th>จำนวน</th><th>ว่าง</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody id="bookBody">${bookRows(state.books)}</tbody></table></div>`;
 }
-function bookRows(arr){return arr.length?arr.map(b=>`<tr><td>${esc(b.title)}</td><td>${esc(b.category)}</td><td>${esc(b.level)}</td><td>${b.qty}</td><td>${b.available}</td><td>${b.available>0?'<span class="badge ok">พร้อมยืม</span>':'<span class="badge bad">ไม่มีเล่มว่าง</span>'}</td><td class="actions"><button class="btn outline edit" data-id="${b.id}">แก้ไข</button><button class="btn danger del" data-id="${b.id}">ลบ</button></td></tr>`).join(""):`<tr><td colspan="7"><div class="empty">ไม่พบข้อมูล</div></td></tr>`}
+function bookRows(arr){return arr.length?arr.map(b=>`<tr><td>${esc(b.title)}</td><td>${esc(b.category)}</td><td>${esc(b.level)}</td><td>${b.qty}</td><td>${b.available}</td><td>${b.available>0?'<span class="badge ok">พร้อมยืม</span>':'<span class="badge bad">ไม่มีเล่มว่าง</span>'}</td><td class="actions"><button class="btn outline edit" data-id="${b.id}">แก้ไข</button><button class="btn danger del" data-id="${b.id}">ลบ</button></td></tr>`).join(""):`<tr><td colspan="7"><div class="empty">ไม่พบข้อมูลหนังสือ</div></td></tr>`}
 
 function studentsPage(){
  const list = state.students.filter(s => (s.userRole || 'student') === 'student');
@@ -352,11 +354,15 @@ function reportsPage(){
  const active=state.records.filter(r=>!r.returned && r.status==="approved").length;
  const overdue=state.records.filter(r=>recStatus(r)==="เกินกำหนด").length;
  const max=Math.max(active,returned,overdue,1);
+ const topBooks = state.books.map(b=>{let n=state.records.filter(r=>r.book===b.id && r.status==="approved").length;return {title:b.title, count:n}}).sort((a,b)=>b.count-a.count);
+ 
  return `<h1>รายงาน</h1><div class="grid2">
  <div class="card"><div class="panel-title"><h3>สรุปการยืม–คืน</h3></div>
   <div class="chart"><div class="bar" style="height:${active/max*140+20}px"><span>กำลังยืม ${active}</span></div><div class="bar" style="height:${returned/max*140+20}px"><span>คืนแล้ว ${returned}</span></div><div class="bar" style="height:${overdue/max*140+20}px"><span>เกินกำหนด ${overdue}</span></div></div>
  </div>
- <div class="card"><h3>หนังสือที่ถูกยืมมาก</h3>${state.books.map(b=>{let n=state.records.filter(r=>r.book===b.id && r.status==="approved").length;return {title:b.title, count:n}}).sort((a,b)=>b.count-a.count).map(b=>`<p style="margin:12px 0">${esc(b.title)} <strong style="float:right">${b.count} ครั้ง</strong></p>`).join("")}</div>
+ <div class="card"><h3>หนังสือที่ถูกยืมมาก</h3>
+ ${topBooks.length ? topBooks.map(b=>`<p style="margin:12px 0">${esc(b.title)} <strong style="float:right">${b.count} ครั้ง</strong></p>`).join("") : '<div class="empty">ไม่มีข้อมูลหนังสือ</div>'}
+ </div>
  </div>`;
 }
 
@@ -502,7 +508,6 @@ function userModal(){
  <button class="btn primary" style="width:100%">บันทึก</button></form></div>`;document.body.appendChild(bg);bg.querySelector(".close").onclick=()=>bg.remove();bg.querySelector("#uf").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);state.users.push({id:"U"+Date.now().toString().slice(-5),name:f.get("name"),username:f.get("username"),role:"Admin",password:f.get("password")||"1234"});save();bg.remove();render("users");toast("เพิ่มผู้ดูแลระบบสำเร็จ")}
 }
 
-// ปรับแต่ง alert ข้อมูลนักเรียน/ครู แบบ Modal กรอบสวยงาม
 function alertStudent(id){
  const s = getStudent(id);
  const rows = state.records.filter(r => r.student === id);
